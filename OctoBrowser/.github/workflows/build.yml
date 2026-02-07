@@ -1,0 +1,80 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tag to use for the release (e.g. v1.0.0)'
+        required: false
+      release_name:
+        description: 'Release title (optional)'
+        required: false
+      release_body:
+        description: 'Release notes (optional)'
+        required: false
+      draft:
+        description: 'Create release as draft (true/false)'
+        required: false
+        default: 'false'
+      prerelease:
+        description: 'Mark as prerelease (true/false)'
+        required: false
+        default: 'false' 
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Build & Release (Windows)
+        if: runner.os == 'Windows'
+        run: npm run package:win -- -p always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Release (macOS)
+        if: runner.os == 'macOS'
+        run: npm run package:mac -- -p always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Release (Linux)
+        if: runner.os == 'Linux'
+        run: npm run package:linux -- -p always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OctoBrowser-${{ runner.os }}
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.AppImage

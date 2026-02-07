@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self';">
+    <title>OctoBrowser</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Title Bar with Tabs -->
+    <div id="title-bar">
+        <div class="title-bar-drag">
+        </div>
+        <div id="tab-bar">
+            <div id="tabs-container">
+                <!-- Tabs will be inserted here -->
+            </div>
+            <button id="new-tab-btn" title="New Tab (Ctrl+T)">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+        </div>
+        <div class="window-controls">
+            <button id="minimize-btn" class="window-btn" title="Minimize">
+                <i class="fa-solid fa-minus"></i>
+            </button>
+            <button id="maximize-btn" class="window-btn" title="Maximize">
+                <!-- Maximize Icon -->
+                <i class="icon-maximize fa-regular fa-square"></i>
+                <!-- Restore Icon -->
+                <i class="icon-restore fa-regular fa-clone" style="display: none;"></i>
+            </button>
+            <button id="close-btn" class="window-btn close-btn" title="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div id="nav-bar">
+        <div class="nav-buttons">
+            <button id="back-btn" class="nav-btn" title="Back" disabled>
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button id="forward-btn" class="nav-btn" title="Forward" disabled>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button id="reload-btn" class="nav-btn" title="Reload">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+        </div>
+        <div class="url-container">
+            <div class="url-bar">
+                <i class="url-icon fa-solid fa-magnifying-glass" style="font-size: 12px;"></i>
+                <input type="text" id="url-input" placeholder="Search or enter URL" autocomplete="off" spellcheck="false">
+            </div>
+        </div>
+        <div class="nav-actions">
+            <button id="sidebar-toggle" class="nav-btn active" title="Toggle Copilot Sidebar">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <button id="theme-toggle" class="nav-btn" title="Toggle Theme">
+                <i id="theme-icon-light" class="fa-solid fa-sun" style="display: none;"></i>
+                <i id="theme-icon-dark" class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-container">
+        <!-- Browser Content (managed by BrowserView) -->
+        <div id="browser-content">
+            <div id="loading-indicator" class="hidden">
+                <div class="spinner"></div>
+            </div>
+            
+            <!-- Zero Tab State (Default Page) -->
+            <div id="zero-state" class="zero-state hidden">
+                <div class="zero-state-content">
+                    <div class="zero-logo">
+                        <svg viewBox="0 0 16 16" width="64" height="64" fill="currentColor">
+                            <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+                        </svg>
+                    </div>
+                    <h1>OctoBrowser</h1>
+                    <div class="zero-subtitle">AI-Powered Web Browser with GitHub Copilot</div>
+                    <p class="zero-description">
+                        Created to compete in the <strong>Copilot SDK Weekend Contest</strong>.
+                        <br>Experience the web with the power of the GitHub Copilot Models.<br>(With UBlock Origin!)
+                    </p>
+                    <div class="zero-actions">
+                        <button id="zero-new-tab-btn" class="primary-btn">Open New Tab</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Copilot Sidebar -->
+        <div id="copilot-sidebar">
+            <div id="sidebar-resizer"></div>
+            <div class="sidebar-header">
+                <div class="sidebar-title">
+                    <svg viewBox="0 0 512 416" width="16" height="13" fill="currentColor">
+                        <path d="M181.33 266.143c0-11.497 9.32-20.818 20.818-20.818 11.498 0 20.819 9.321 20.819 20.818v38.373c0 11.497-9.321 20.818-20.819 20.818-11.497 0-20.818-9.32-20.818-20.818v-38.373zM308.807 245.325c-11.477 0-20.798 9.321-20.798 20.818v38.373c0 11.497 9.32 20.818 20.798 20.818 11.497 0 20.818-9.32 20.818-20.818v-38.373c0-11.497-9.32-20.818-20.818-20.818z" fill-rule="nonzero"/>
+                        <path d="M512.002 246.393v57.384c-.02 7.411-3.696 14.638-9.67 19.011C431.767 374.444 344.695 416 256 416c-98.138 0-196.379-56.542-246.33-93.21-5.975-4.374-9.65-11.6-9.671-19.012v-57.384a35.347 35.347 0 016.857-20.922l15.583-21.085c8.336-11.312 20.757-14.31 33.98-14.31 4.988-56.953 16.794-97.604 45.024-127.354C155.194 5.77 226.56 0 256 0c29.441 0 100.807 5.77 154.557 62.722 28.19 29.75 40.036 70.401 45.025 127.354 13.263 0 25.602 2.936 33.958 14.31l15.583 21.127c4.476 6.077 6.878 13.345 6.878 20.88zm-97.666-26.075c-.677-13.058-11.292-18.19-22.338-21.824-11.64 7.309-25.848 10.183-39.46 10.183-14.454 0-41.432-3.47-63.872-25.869-5.667-5.625-9.527-14.454-12.155-24.247a212.902 212.902 0 00-20.469-1.088c-6.098 0-13.099.349-20.551 1.088-2.628 9.793-6.509 18.622-12.155 24.247-22.4 22.4-49.418 25.87-63.872 25.87-13.612 0-27.86-2.855-39.501-10.184-11.005 3.613-21.558 8.828-22.277 21.824-1.17 24.555-1.272 49.11-1.375 73.645-.041 12.318-.082 24.658-.288 36.976.062 7.166 4.374 13.818 10.882 16.774 52.97 24.124 103.045 36.278 149.137 36.278 46.01 0 96.085-12.154 149.014-36.278 6.508-2.956 10.84-9.608 10.881-16.774.637-36.832.124-73.809-1.642-110.62h.041zM107.521 168.97c8.643 8.623 24.966 14.392 42.56 14.392 13.448 0 39.03-2.874 60.156-24.329 9.28-8.951 15.05-31.35 14.413-54.079-.657-18.231-5.769-33.28-13.448-39.665-8.315-7.371-27.203-10.574-48.33-8.644-22.399 2.238-41.267 9.588-50.875 19.833-20.798 22.728-16.323 80.317-4.476 92.492zm130.556-56.008c.637 3.51.965 7.35 1.273 11.517 0 2.875 0 5.77-.308 8.952 6.406-.636 11.847-.636 16.959-.636s10.553 0 16.959.636c-.329-3.182-.329-6.077-.329-8.952.329-4.167.657-8.007 1.294-11.517-6.735-.637-12.812-.965-17.924-.965s-11.21.328-17.924.965zm49.275-8.008c-.637 22.728 5.133 45.128 14.413 54.08 21.105 21.454 46.708 24.328 60.155 24.328 17.596 0 33.918-5.769 42.561-14.392 11.847-12.175 16.322-69.764-4.476-92.492-9.608-10.245-28.476-17.595-50.875-19.833-21.127-1.93-40.015 1.273-48.33 8.644-7.679 6.385-12.791 21.434-13.448 39.665z"/></svg>
+                    <span>Copilot</span>
+                </div>
+                <div class="sidebar-controls">
+                    <button id="clear-chat-btn" class="sidebar-btn" title="New Chat">
+                        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+                            <path d="M13.25 2.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Z"></path>
+                            <path d="M8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"></path>
+                        </svg>
+                    </button>
+                    <button id="history-btn" class="sidebar-btn" title="History">
+                         <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+                            <path d="m.427 1.927 1.215 1.215a8.002 8.002 0 1 1-1.6 5.685.75.75 0 1 1 1.493-.154 6.5 6.5 0 1 0 1.18-4.458l1.358 1.358A.25.25 0 0 1 3.896 6H.25A.25.25 0 0 1 0 5.75V2.104a.25.25 0 0 1 .427-.177ZM7.75 4a.75.75 0 0 1 .75.75v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.75.75 0 0 1 7 7.743V4.75a.75.75 0 0 1 .75-.75Z"></path>
+                        </svg>
+                    </button>
+                    <button id="settings-btn" class="sidebar-btn" title="Settings">
+                        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+                            <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="chat-view-wrapper">
+                <div id="chat-messages">
+                    <div class="welcome-message">
+                        <div class="welcome-icon">
+                            <svg viewBox="0 0 512 416" width="48" height="39" fill="currentColor">
+                                <path d="M181.33 266.143c0-11.497 9.32-20.818 20.818-20.818 11.498 0 20.819 9.321 20.819 20.818v38.373c0 11.497-9.321 20.818-20.819 20.818-11.497 0-20.818-9.32-20.818-20.818v-38.373zM308.807 245.325c-11.477 0-20.798 9.321-20.798 20.818v38.373c0 11.497 9.32 20.818 20.798 20.818 11.497 0 20.818-9.32 20.818-20.818v-38.373c0-11.497-9.32-20.818-20.818-20.818z" fill-rule="nonzero"/>
+                                <path d="M512.002 246.393v57.384c-.02 7.411-3.696 14.638-9.67 19.011C431.767 374.444 344.695 416 256 416c-98.138 0-196.379-56.542-246.33-93.21-5.975-4.374-9.65-11.6-9.671-19.012v-57.384a35.347 35.347 0 016.857-20.922l15.583-21.085c8.336-11.312 20.757-14.31 33.98-14.31 4.988-56.953 16.794-97.604 45.024-127.354C155.194 5.77 226.56 0 256 0c29.441 0 100.807 5.77 154.557 62.722 28.19 29.75 40.036 70.401 45.025 127.354 13.263 0 25.602 2.936 33.958 14.31l15.583 21.127c4.476 6.077 6.878 13.345 6.878 20.88zm-97.666-26.075c-.677-13.058-11.292-18.19-22.338-21.824-11.64 7.309-25.848 10.183-39.46 10.183-14.454 0-41.432-3.47-63.872-25.869-5.667-5.625-9.527-14.454-12.155-24.247a212.902 212.902 0 00-20.469-1.088c-6.098 0-13.099.349-20.551 1.088-2.628 9.793-6.509 18.622-12.155 24.247-22.4 22.4-49.418 25.87-63.872 25.87-13.612 0-27.86-2.855-39.501-10.184-11.005 3.613-21.558 8.828-22.277 21.824-1.17 24.555-1.272 49.11-1.375 73.645-.041 12.318-.082 24.658-.288 36.976.062 7.166 4.374 13.818 10.882 16.774 52.97 24.124 103.045 36.278 149.137 36.278 46.01 0 96.085-12.154 149.014-36.278 6.508-2.956 10.84-9.608 10.881-16.774.637-36.832.124-73.809-1.642-110.62h.041zM107.521 168.97c8.643 8.623 24.966 14.392 42.56 14.392 13.448 0 39.03-2.874 60.156-24.329 9.28-8.951 15.05-31.35 14.413-54.079-.657-18.231-5.769-33.28-13.448-39.665-8.315-7.371-27.203-10.574-48.33-8.644-22.399 2.238-41.267 9.588-50.875 19.833-20.798 22.728-16.323 80.317-4.476 92.492zm130.556-56.008c.637 3.51.965 7.35 1.273 11.517 0 2.875 0 5.77-.308 8.952 6.406-.636 11.847-.636 16.959-.636s10.553 0 16.959.636c-.329-3.182-.329-6.077-.329-8.952.329-4.167.657-8.007 1.294-11.517-6.735-.637-12.812-.965-17.924-.965s-11.21.328-17.924.965zm49.275-8.008c-.637 22.728 5.133 45.128 14.413 54.08 21.105 21.454 46.708 24.328 60.155 24.328 17.596 0 33.918-5.769 42.561-14.392 11.847-12.175 16.322-69.764-4.476-92.492-9.608-10.245-28.476-17.595-50.875-19.833-21.127-1.93-40.015 1.273-48.33 8.644-7.679 6.385-12.791 21.434-13.448 39.665z"/></svg>
+                        </div>
+                        <h2>What do you want to browse?</h2>
+                        <p>I can help you search, answer questions, and summarize content on your pages!</p>
+                        <div class="quick-actions">
+                            <button class="quick-action" data-prompt="Summarize this page">Summarize page</button>
+                            <button class="quick-action" data-prompt="Search for the latest tech news">Search tech news</button>
+                            <button class="quick-action" data-prompt="What can you help me with?">What can you do?</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Scrollbar (Reading Progress Style) -->
+                <div class="custom-scrollbar-container">
+                    <div id="custom-scrollbar" class="custom-scrollbar-thumb"></div>
+                </div>
+            </div>
+
+            <div id="chat-input-container">
+                <div class="input-wrapper">
+                    <textarea id="chat-input" placeholder="Ask Copilot..." rows="1"></textarea>
+                    
+                    <div class="input-footer-controls">
+                        <div class="left-controls">
+                            <div class="model-dropdown-container">
+                                <select id="model-select" class="model-select-btn" title="Select Model">
+                                    <option value="gpt-4.1">GPT-4.1 (0x)</option>
+                                    <option value="gpt-5-mini">GPT 5 Mini (0x)</option>
+                                    <option value="claude-haiku-4.5">Claude Haiku 4.5 (0.33x)</option>
+                                </select>
+                            </div>
+                            <button id="get-page-btn" class="context-btn" title="Toggle Page Context">
+                                <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+                                    <path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"></path>
+                                </svg>
+                                <span>Page Context</span>
+                            </button>
+                        </div>
+                        <button id="send-btn" class="send-btn" disabled>
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+                                <path d="M.989 8 .064 2.68a1.342 1.342 0 0 1 1.85-1.462l13.402 5.744a1.13 1.13 0 0 1 0 2.076L1.913 14.782a1.343 1.343 0 0 1-1.85-1.463L.99 8Zm.603-5.288L2.38 7.25h4.87a.75.75 0 0 1 0 1.5H2.38l-.788 4.538L13.929 8Z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-footer">
+                    <span class="powered-by">Powered by the GitHub Copilot SDK</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content history-modal-content">
+            <div class="modal-header">
+                <h2>Chat History</h2>
+                <div class="header-actions">
+                    <button id="clear-history-btn" class="text-btn danger">Clear All</button>
+                    <button class="modal-close">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body history-list-container">
+                <div id="history-list" class="history-list">
+                    <!-- History items will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>About OctoBrowser</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="about-logo">
+                    <svg viewBox="0 0 16 16" width="64" height="64" fill="currentColor">
+                        <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+                    </svg>
+                </div>
+                <h3>OctoBrowser v1.0.0</h3>
+                <p>An AI-powered Chromium-based web browser with GitHub Copilot SDK integration.</p>
+                <p class="about-features">
+                    <strong>Features:</strong><br>
+                    • Built on Electron/Chromium<br>
+                    • GitHub Copilot SDK integration<br>
+                    • AI-powered web browsing<br>
+                    • Smart page summarization<br>
+                    • Dark/Light theme support
+                </p>
+                <p class="about-credits">
+                    Built for the GitHub Copilot SDK Weekend Contest
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <div class="setting-text-wrapper">
+                        <div class="setting-label">uBlock Origin</div>
+                        <div class="setting-description">Block ads and trackers. Disabling requires a restart to take effect.</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="ublock-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Questions Modal -->
+    <div id="questions-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="questions-title">Copilot Question</h2>
+            </div>
+            <div class="modal-body">
+                <div id="questions-container">
+                    <!-- Questions will be inserted here -->
+                </div>
+                <div class="questions-actions" style="margin-top: 20px; text-align: right;">
+                    <button id="submit-answers-btn" class="primary-btn">Submit Answers</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
